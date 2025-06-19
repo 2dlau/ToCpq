@@ -1,0 +1,54 @@
+<template>
+  <!-- Debug section - Remove after fixing -->
+  <div class="slds-box slds-theme_default">
+    <p>RecordId: {recordId}</p>
+    <p>Wrappers Length: {wrappers.length}</p>
+    <template if:true={wrappers}>
+      <pre>{debugWrappers}</pre>
+    </template>
+  </div>
+
+  <!-- Header Section -->
+  <div class="slds-page-header slds-m-bottom_medium">
+    <div class="slds-page-header__row">
+      <div class="slds-page-header__col-title">
+        <div class="slds-media">
+          <div class="slds-media__figure">
+            <lightning-icon
+              icon-name="standard:service_appointment"
+              size="medium"
+            >
+            </lightning-icon>
+          </div>
+          <div class="slds-media__body">
+            <div class="slds-page-header__name">
+              <div class="slds-page-header__name-title">
+                <h1>
+                  <span
+                    class="slds-page-header__title slds-truncate"
+                    title="Service Wrappers"
+                  >
+                    Service Wrappers
+                  </span>
+                </h1>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <div class="slds-card">
+    <div class="slds-card__body slds-card__body_inner">
+      <lightning-datatable
+        key-field="Id"
+        data={wrappers}
+        columns={columns}
+        hide-checkbox-column
+      >
+      </lightning-datatable>
+    </div>
+  </div>
+</template>

@@ -1,8 +1,12 @@
 public with sharing class AccountService {
   public class AccountWrapper {
+    @AuraEnabled
     public Account acct { get; set; }
+    @AuraEnabled
     public List<Opportunity> topOpportunities { get; set; }
+    @AuraEnabled
     public Boolean hasOverDueCases { get; set; }
+    @AuraEnabled
     public Decimal totalOpportunityAmount { get; set; }
 
     public AccountWrapper(
@@ -21,6 +25,7 @@ public with sharing class AccountService {
     }
   }
 
+  @AuraEnabled(cacheable=true)
   public static List<AccountWrapper> buildAccountWrappers() {
     List<AccountWrapper> accountWrappers = new List<AccountWrapper>();
 
@@ -30,15 +35,19 @@ public with sharing class AccountService {
       [
         SELECT Id, Name
         FROM Account
+        ORDER BY lastModifiedDate DESC
         LIMIT 10
       ]
     );
+
+    system.debug('Filtered Accounts: ' + filteredAccounts);
 
     List<Opportunity> opportunities = [
       SELECT Id, Name, Amount, AccountId
       FROM Opportunity
       WHERE AccountId IN :filteredAccounts
     ];
+    system.debug('Opportunities: ' + opportunities);
 
     for (Opportunity opp : opportunities) {
       if (!acctOppsMap.containsKey(opp.AccountId)) {
@@ -55,7 +64,7 @@ public with sharing class AccountService {
       FROM Case
       WHERE Status = 'Overdue' AND AccountId IN :filteredAccounts
     ];
-
+    system.debug('Overdue Cases: ' + overdueCases);
     for (Case c : overdueCases) {
       if (c.AccountId != null) {
         acctsWithOverDueCases.add(c.AccountId);
@@ -69,14 +78,19 @@ public with sharing class AccountService {
         : new List<Opportunity>();
       Boolean hasOverDueCases = acctsWithOverDueCases.contains(acct.Id);
       // Create the wrapper object
-      AccountWrapper wrapper = new AccountWrapper(
-        acct,
-        topOpportunities,
-        hasOverDueCases
-      );
-      accountWrappers.add(wrapper);
+      if (acct != null && acct.Id != null) {
+        System.debug('Processing Account: ' + acct.Name);
+        AccountWrapper wrapper = new AccountWrapper(
+          acct,
+          topOpportunities,
+          hasOverDueCases
+        );
+        accountWrappers.add(wrapper);
+      } else {
+        System.debug('Skipping Account with null Name or Id');
+      }
     }
-
+    system.debug('Account Wrappers: ' + accountWrappers);
     return accountWrappers;
   }
 }
